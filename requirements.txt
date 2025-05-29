@@ -4,5 +4,6 @@ python-multipart
 firebase-admin
 scikit-learn
 joblib
-opencv-python
+opencv-python-headless
 pillow
+numpy
