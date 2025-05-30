@@ -4,7 +4,7 @@ import uuid
 
 # Inisialisasi Firebase hanya sekali
 if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
+    cred = credentials.Certificate("app/serviceAccountKey.json")
     firebase_admin.initialize_app(cred, {
         'storageBucket': 'toxmap-b74f4.firebasestorage.app'  # SESUAI UI Firebase kamu
     })

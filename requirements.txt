@@ -7,3 +7,4 @@ joblib
 opencv-python-headless
 pillow
 numpy
+requests

@@ -2,16 +2,26 @@ from PIL import Image
 from io import BytesIO
 import numpy as np
 import joblib
+import requests
+import os
 import math
 
-model = joblib.load("svm_model_final.pkl")
+# Link ke model di Firebase Storage
+MODEL_URL = "https://firebasestorage.googleapis.com/v0/b/toxmap-b74f4.firebasestorage.app/o/svm_model_final.pkl?alt=media&token=83df2ee0-e577-4d7f-aa1b-5c59362cec85"
+
+# Download model ke local (cache)
+LOCAL_MODEL_PATH = "svm_model_final.pkl"
+if not os.path.exists(LOCAL_MODEL_PATH):
+    print("⬇️ Mengunduh model dari Firebase Storage...")
+    response = requests.get(MODEL_URL)
+    with open(LOCAL_MODEL_PATH, "wb") as f:
+        f.write(response.content)
+    print("✅ Model berhasil diunduh!")
+
+# Load model
+model = joblib.load(LOCAL_MODEL_PATH)
 n_features = model.support_vectors_.shape[1]
 
-# Hitung ukuran gambar dari total fitur
-# Karena RGB, maka total pixel = fitur / 3
-total_pixel = n_features // 3
-
-# Cari kombinasi tinggi dan lebar paling mendekati bujur sangkar
 def get_closest_hw(pixel_count):
     sqrt_val = int(math.sqrt(pixel_count))
     for h in range(sqrt_val, 0, -1):
@@ -20,8 +30,8 @@ def get_closest_hw(pixel_count):
             return h, w
     return 1, pixel_count
 
+total_pixel = n_features // 3
 target_h, target_w = get_closest_hw(total_pixel)
-print(f"📐 Model expect shape: ({target_h}, {target_w}, 3) → Total fitur: {n_features}")
 
 label_mapping = {
     0: "Non_Toxic",
@@ -44,7 +54,7 @@ dropbox_color_mapping = {
 def predict_image(file_bytes):
     try:
         image = Image.open(BytesIO(file_bytes)).convert("RGB")
-        image = image.resize((target_w, target_h))  # width x height
+        image = image.resize((target_w, target_h))
 
         img_array = np.asarray(image, dtype=np.uint8)
         if img_array.shape != (target_h, target_w, 3):
